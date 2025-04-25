@@ -1,4 +1,4 @@
-package br.com.sh.appproposta.model.form;
+package br.com.sh.notificacao.model.form;
 
 import java.math.BigDecimal;
 

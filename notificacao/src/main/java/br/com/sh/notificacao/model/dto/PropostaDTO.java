@@ -1,6 +1,7 @@
-package br.com.sh.appproposta.model.dto;
+package br.com.sh.notificacao.model.dto;
 
-import br.com.sh.appproposta.model.PropostaModel;
+
+import br.com.sh.notificacao.model.PropostaModel;
 import lombok.Data;
 
 import java.math.BigDecimal;

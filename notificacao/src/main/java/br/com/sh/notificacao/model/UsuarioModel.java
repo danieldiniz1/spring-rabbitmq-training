@@ -1,19 +1,16 @@
-package br.com.sh.appproposta.model;
+package br.com.sh.notificacao.model;
 
-import br.com.sh.appproposta.model.form.UsuarioForm;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.*;
+
+import br.com.sh.notificacao.model.form.UsuarioForm;
 import lombok.Data;
 
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "tb_usuario")
+
 @Data
 public class UsuarioModel {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private Long id;
 
     private String nome;
@@ -25,11 +22,6 @@ public class UsuarioModel {
     private String telefone;
 
     private BigDecimal renda;
-
-    @OneToOne(mappedBy = "usuario")
-    @JoinColumn(name = "proposta_id", referencedColumnName = "id")
-    @JsonBackReference
-    private PropostaModel proposta;
 
     public static UsuarioModel valueOf(UsuarioForm form) {
         UsuarioModel model = new UsuarioModel();
