@@ -12,7 +12,7 @@ public class DefaultNotificacaoService implements NotificacaoService {
 
     @Override
     public void notificarPorSMS(String mensagem) {
-
+        LOGGER.info("Notificação por SMS: {}", mensagem);
     }
 
     @Override

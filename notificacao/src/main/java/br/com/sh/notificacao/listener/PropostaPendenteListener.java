@@ -19,5 +19,6 @@ public class PropostaPendenteListener {
     public void propostaPendete(PropostaModel proposta) {
         String mensagem = String.format( MessageConstants.MENSAGEM_PENDENTE, proposta.getUsuario().getNome(), proposta.getId());
         notificacaoService.notificarPorSMS(mensagem);
+
     }
 }
