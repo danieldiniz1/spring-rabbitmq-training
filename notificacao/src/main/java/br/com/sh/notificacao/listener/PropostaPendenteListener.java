@@ -18,7 +18,7 @@ public class PropostaPendenteListener {
     @RabbitListener(queues = "${rabbitmq.queue.proposta.pendente}")
     public void propostaPendete(PropostaModel proposta) {
         String mensagem = String.format( MessageConstants.MENSAGEM_PENDENTE, proposta.getUsuario().getNome(), proposta.getId());
-        notificacaoService.notificarPorSMS(mensagem);
+        notificacaoService.notificarPorSMS(mensagem, proposta.getUsuario().getTelefone());
 
     }
 }
