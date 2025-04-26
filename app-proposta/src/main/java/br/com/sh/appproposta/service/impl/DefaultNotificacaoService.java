@@ -17,8 +17,7 @@ public class DefaultNotificacaoService implements NotificacaoService {
 
     @Override
     public void notificar(PropostaModel proposta, String exchange) {
-        rabbitTemplate.convertAndSend(exchange, "", proposta);
-        logger.info("Proposta {} notificada com sucesso", proposta.getId());
-
+            rabbitTemplate.convertAndSend(exchange, "", proposta);
+            logger.info("Proposta {} notificada com sucesso", proposta.getId());
     }
 }

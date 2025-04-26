@@ -26,6 +26,9 @@ public class RabbitMQConfiguration {
     @Value("${rabbitmq.propostapendent.exchange}")
     private String PROPOSTA_PENDENTE_EX;
 
+    @Value("${rabbitmq.propostaconcluida.exchange}")
+    private String PROPOSTA_CONCLUIDA_EX;
+
     public static final String ROUTING_KEY = "proposta";
 
     private ConnectionFactory connectionFactory;
@@ -34,6 +37,7 @@ public class RabbitMQConfiguration {
         this.connectionFactory = connectionFactory;
     }
 
+//    configura o rabbit admin e listener
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
@@ -49,11 +53,18 @@ public class RabbitMQConfiguration {
         };
     }
 
+//    congfigura o FanoutExchange
     @Bean
     public FanoutExchange createFanoutExchangePropostaPendente() {
         return ExchangeBuilder.fanoutExchange(PROPOSTA_PENDENTE_EX).build();
     }
 
+    @Bean
+    public FanoutExchange createFanoutExchangePropostaConcluida() {
+        return ExchangeBuilder.fanoutExchange(PROPOSTA_CONCLUIDA_EX).build();
+    }
+
+//    Configura os Bindings
     @Bean
     public Binding createBindingPropostaPendenteMSAnaliseCredito() {
         return BindingBuilder.bind(createQueueOrderPendingMSanalyse())
@@ -66,6 +77,19 @@ public class RabbitMQConfiguration {
                 .to(createFanoutExchangePropostaPendente());
     }
 
+    @Bean
+    public Binding createBindingPropostaConcluidaMSProposta() {
+        return BindingBuilder.bind(createQueueOrderCompletedMSproposta())
+                .to(createFanoutExchangePropostaConcluida());
+    }
+
+    @Bean
+    public Binding createBindingPropostaConcluidaMSNotificacao() {
+        return BindingBuilder.bind(createQueueOrderCompletedMSnotification())
+                .to(createFanoutExchangePropostaConcluida());
+    }
+
+//    Cria as flilas
     @Bean
     public Queue createQueueOrderPendingMSanalyse() {
         return QueueBuilder.durable(PROPOSTA_PENDENTE_ANALISE_CREDITO).build();
@@ -86,11 +110,13 @@ public class RabbitMQConfiguration {
         return QueueBuilder.durable(PROPOSTA_CONCLUIDA_MS_NOTIFICACAO).build();
     }
 
+//    configura o message converter
     @Bean
     public MessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
+//    configura o RabbitTemplate
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);

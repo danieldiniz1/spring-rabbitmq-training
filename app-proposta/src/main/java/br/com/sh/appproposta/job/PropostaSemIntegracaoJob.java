@@ -27,7 +27,7 @@ public class PropostaSemIntegracaoJob {
         this.notificacaoService = notificacaoService;
     }
 
-    @Scheduled(fixedDelay = 60,timeUnit = TimeUnit.SECONDS)
+    @Scheduled(fixedDelay = 20,timeUnit = TimeUnit.SECONDS)
     public void executasearchForPropostaSemIntegracao() {
         propostaRepository.findAllByintegradaIsFalse().forEach(proposta -> {
             try {

@@ -7,6 +7,8 @@ import br.com.sh.appproposta.repository.PropostaRepository;
 import br.com.sh.appproposta.repository.UsuarioRepository;
 import br.com.sh.appproposta.service.NotificacaoService;
 import br.com.sh.appproposta.service.PropostaService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,7 @@ import java.util.Objects;
 @Service
 public class DefaultPropostaService implements PropostaService {
 
+    private static final Logger LOG = LogManager.getLogger(DefaultPropostaService.class);
     @Value("${rabbitmq.propostapendent.exchange}")
     private String PROPOSTA_PENDENTE_EX;
     private final PropostaRepository propostaRepository;
@@ -57,6 +60,7 @@ public class DefaultPropostaService implements PropostaService {
         } catch (RuntimeException e) {
             proposta.setIntegrada(Boolean.FALSE);
             propostaRepository.save(proposta);
+            LOG.error("Erro ao notificar proposta com id: {}, erro: {}", proposta.getId(), e.getMessage());
         }
     }
 }
