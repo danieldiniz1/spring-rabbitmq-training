@@ -1,5 +1,6 @@
 package br.com.sh.appanalisecredito.service.impl;
 
+import br.com.sh.appanalisecredito.constants.MessageConstants;
 import br.com.sh.appanalisecredito.exception.EmprestimoEmAndamentoException;
 import br.com.sh.appanalisecredito.model.PropostaModel;
 import br.com.sh.appanalisecredito.service.AnaliseCreditoService;
@@ -43,7 +44,7 @@ public class DefaultAnaliseCreditoService implements AnaliseCreditoService {
 
         } catch (RuntimeException e) {
             LOGGER.error("Erro ao calcular pontuacao proposta id: {}. Erro: {}", proposta.getId(), e.getMessage());
-            reprovarProposta(proposta,0,e.getMessage());
+            reprovarProposta(proposta, 0, e.getMessage());
         }
         notificacaoRabbitMQService.NotificarFila(proposta, propostaConcluidaExtName, propostaConcluidaQueueName, "");
     }
@@ -52,11 +53,11 @@ public class DefaultAnaliseCreditoService implements AnaliseCreditoService {
         if (pontuacao > 350) {
             aprovarProposta(proposta, pontuacao);
         } else {
-            reprovarProposta(proposta, pontuacao,"Pontuacao abaixo do limite de credito");
+            reprovarProposta(proposta, pontuacao, "Pontuacao abaixo do limite de credito");
         }
     }
 
-    private void reprovarProposta(PropostaModel proposta, int pontuacao,String mensagem) {
+    private void reprovarProposta(PropostaModel proposta, int pontuacao, String mensagem) {
         proposta.setAprovada(Boolean.FALSE);
         proposta.setObservacao(mensagem);
         LOGGER.info("Proposta id: {} aprovada com pontuacao: {}", proposta.getId(), pontuacao);
@@ -64,6 +65,8 @@ public class DefaultAnaliseCreditoService implements AnaliseCreditoService {
 
     private void aprovarProposta(PropostaModel proposta, int pontuacao) {
         proposta.setAprovada(Boolean.TRUE);
-        LOGGER.info("Proposta id: {} reprovada com pontuacao: {}", proposta.getId(), pontuacao);
+        proposta.setObservacao(String
+                .format(MessageConstants.LIBERAR_RECURSO, proposta.getUsuario().getNome(), proposta.getId(),MessageConstants.PRAZO_LIBERACAO ));
+        LOGGER.info("Proposta id: {} aprovada com pontuacao: {}", proposta.getId(), pontuacao);
     }
 }

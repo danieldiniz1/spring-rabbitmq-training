@@ -2,7 +2,9 @@ package br.com.sh.appproposta.listener;
 
 import br.com.sh.appproposta.exception.PropostaNotFoundException;
 import br.com.sh.appproposta.model.PropostaModel;
+import br.com.sh.appproposta.model.dto.PropostaDTO;
 import br.com.sh.appproposta.repository.PropostaRepository;
+import br.com.sh.appproposta.service.WebSocketService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -15,10 +17,12 @@ public class PropostaConcluidaListener {
     private static final Logger LOGGER = LogManager.getLogger(PropostaConcluidaListener.class);
     private final RabbitTemplate rabbitTemplate;
     private final PropostaRepository propostaRepository;
+    private final WebSocketService webSocketService;
 
-    public PropostaConcluidaListener(RabbitTemplate rabbitTemplate, PropostaRepository propostaRepository) {
+    public PropostaConcluidaListener(RabbitTemplate rabbitTemplate, PropostaRepository propostaRepository, WebSocketService webSocketService) {
         this.rabbitTemplate = rabbitTemplate;
         this.propostaRepository = propostaRepository;
+        this.webSocketService = webSocketService;
     }
 
     @RabbitListener(queues = "${rabbitmq.propostaconcluida.queue}")
@@ -30,6 +34,7 @@ public class PropostaConcluidaListener {
                 .orElseThrow(() -> new PropostaNotFoundException("Proposta não encontrada com id: " + proposta.getId()));
 
         atualizarDadosDeProposta(propostaModel, proposta);
+        webSocketService.notificar(PropostaDTO.valueOf(propostaModel));
     }
 
     private void atualizarDadosDeProposta(PropostaModel propostaModel, PropostaModel proposta) {

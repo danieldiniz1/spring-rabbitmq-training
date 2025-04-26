@@ -1,5 +1,6 @@
 package br.com.sh.notificacao.service.impl;
 
+import br.com.sh.notificacao.constants.MessageConstants;
 import br.com.sh.notificacao.service.NotificacaoService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,7 +13,7 @@ public class DefaultNotificacaoService implements NotificacaoService {
 
     @Override
     public void notificarPorSMS(String mensagem, String telefone) {
-        LOGGER.info("Notificação para telefone {} por SMS: {}",telefone, mensagem);
+        LOGGER.info(MessageConstants.LOG_MESSAGE_ENVIO_SMS,telefone, mensagem);
     }
 
     @Override
