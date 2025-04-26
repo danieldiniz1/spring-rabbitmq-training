@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class DefaultPrazoPagamento implements CalculoPonto {
 
-    private final int VALOR_PRAZO_PAGAMENTO = 10;
+    private final int VALOR_PRAZO_PAGAMENTO = 120;
 
     @Override
     public Integer calcular(PropostaModel proposta) {

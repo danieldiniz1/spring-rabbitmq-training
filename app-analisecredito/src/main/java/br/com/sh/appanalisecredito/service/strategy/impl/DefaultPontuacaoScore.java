@@ -4,10 +4,12 @@ import br.com.sh.appanalisecredito.exception.ScoreCreditoNegativoException;
 import br.com.sh.appanalisecredito.model.PropostaModel;
 import br.com.sh.appanalisecredito.service.strategy.CalculoPonto;
 import br.com.sh.appanalisecredito.util.ValueRandom;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
 
+@Order(3)
 @Service
 public class DefaultPontuacaoScore implements CalculoPonto {
 
@@ -22,6 +24,6 @@ public class DefaultPontuacaoScore implements CalculoPonto {
 
     private int score(){
 //        simula requisição para API de pontuação de score credito
-        return ValueRandom.randomInteger(0,1000);
+        return ValueRandom.randomInteger(150,1000);
     }
 }
