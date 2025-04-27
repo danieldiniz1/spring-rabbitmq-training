@@ -29,17 +29,18 @@ public class PropostaConcluidaListener {
     public void consumirListenerPropostaConcluida(PropostaModel proposta) {
         LOGGER.info("Consumida do proposta {} com status {} e observacao {}.",
                 proposta.getId(), proposta.getAprovada(), proposta.getObservacao());
-        PropostaModel propostaModel = propostaRepository
-                .findById(proposta.getId())
-                .orElseThrow(() -> new PropostaNotFoundException("Proposta não encontrada com id: " + proposta.getId()));
-
-        atualizarDadosDeProposta(propostaModel, proposta);
-        webSocketService.notificar(PropostaDTO.valueOf(propostaModel));
+//        PropostaModel propostaModel = propostaRepository
+//                .findById(proposta.getId())
+//                .orElseThrow(() -> new PropostaNotFoundException("Proposta não encontrada com id: " + proposta.getId()));
+//
+//        atualizarDadosDeProposta(propostaModel, proposta);
+        propostaRepository.updateProposta(proposta.getId(), proposta.getAprovada(), proposta.getObservacao());
+        webSocketService.notificar(PropostaDTO.valueOf(proposta));
     }
 
-    private void atualizarDadosDeProposta(PropostaModel propostaModel, PropostaModel proposta) {
-        propostaModel.setAprovada(proposta.getAprovada());
-        propostaModel.setObservacao(proposta.getObservacao());
-        propostaRepository.save(propostaModel);
-    }
+//    private void atualizarDadosDeProposta(PropostaModel propostaModel, PropostaModel proposta) {
+//        propostaModel.setAprovada(proposta.getAprovada());
+//        propostaModel.setObservacao(proposta.getObservacao());
+//        propostaRepository.save(propostaModel);
+//    }
 }
