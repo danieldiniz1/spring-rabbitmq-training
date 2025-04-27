@@ -3,6 +3,7 @@ package br.com.sh.appanalisecredito.listener;
 
 import br.com.sh.appanalisecredito.model.PropostaModel;
 import br.com.sh.appanalisecredito.service.AnaliseCreditoService;
+import br.com.sh.appanalisecredito.util.ValueRandom;
 import lombok.AllArgsConstructor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
