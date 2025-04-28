@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-
   db:
     image: postgres:latest
     environment:
@@ -12,6 +11,11 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+#    command: >
+#       sh -c "docker-entrypoint.sh postgres &&
+#       sleep 5 &&
+#       psql -U postgres -d app-proposta -c 'CREATE SCHEMA IF NOT EXISTS apiproposta;' &&
+#       psql -U postgres -d app-proposta -c 'ALTER ROLE postgres SET search_path TO apiproposta, public;'"
 
   rabbitmq:
     image: rabbitmq:management
@@ -23,7 +27,7 @@ services:
 #      RABBITMQ_DEFAULT_PASS: admin
 
 
-  backend:
+  backend-proposta-app:
     build:
       context: .
       dockerfile: Dockerfile
@@ -33,17 +37,59 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/appdb
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/app-proposta?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_LISTENER_SIMPLE_RETRY_ENABLED: true
+      RABBITMQ_LISTENER_SIMPLE_RETRY_MAX_ATTEMPTS: 3
+      propostapendent_exchange: proposta-pendente.ex
+      propostapendentdlq_exchange: proposta-pendente-dlq.ex
+      propostaconcluida_exchange: proposta-concluida.ex
+      propostaconcluidadlq_exchange: proposta-concluida-dlq.ex
 
-  frontend:
-    image: matheuspieropan/proposta-web
-    ports:
-      - "3000:80"
-#    depends_on:
-#      - backend
+  backend-notificacao-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_LISTENER_SIMPLE_RETRY_ENABLED: true
+      RABBITMQ_LISTENER_SIMPLE_RETRY_MAX_ATTEMPTS: 3
+      propostapendent_exchange: proposta-pendente.ex
+      propostaconcluida_exchange: proposta-concluida.ex
+      queue_proposta_pendente: proposta-pendente.ms-notificacao
+      queue_proposta_concluida: proposta-concluida.ms-notificacao
+
+  backend-analise-credito-app:
+    build:
+      context: ../app-analisecredito/.
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_LISTENER_SIMPLE_RETRY_ENABLED: true
+      RABBITMQ_LISTENER_SIMPLE_RETRY_MAX_ATTEMPTS: 3
+      propostapendent_exchange: proposta-pendente.ex
+      propostaconcluida_exchange: proposta-concluida.ex
+      queue_proposta_pendente: proposta-pendente.ms-analise-credito
+      queue_proposta_concluida: proposta-concluida.ms-notificacao
+
+#  frontend:
+#    image: matheuspieropan/proposta-web
+#    ports:
+#      - "3000:80"
+##    depends_on:
+##      - backend
 
 volumes:
   db-data:

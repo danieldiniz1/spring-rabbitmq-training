@@ -12,8 +12,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.swing.plaf.PanelUI;
-
 @Configuration
 public class RabbitMQConfiguration {
 
@@ -29,6 +27,18 @@ public class RabbitMQConfiguration {
     @Value("${rabbitmq.propostaconcluida.exchange}")
     private String PROPOSTA_CONCLUIDA_EX;
 
+    @Value("${rabbitmq.propostapendent.dql.exchange}")
+    private String PROPOSTA_PENDENTE_DLQ_ex;
+
+    @Value("${rabbitmq.propostaconcluida.dql.exchange}")
+    private String PROPOSTA_CONCLUIDA_DLQ_ex;
+
+    @Value("${rabbitmq.propostapendente.dlq.queue}")
+    private String PROPOSTA_PENDENTE_DLQ;
+
+    @Value("${rabbitmq.propostaconcluida.dlq.queue}")
+    private String PROPOSTA_CONCLUIDA_DLQ;
+
     public static final String ROUTING_KEY = "proposta";
 
     private ConnectionFactory connectionFactory;
@@ -37,7 +47,7 @@ public class RabbitMQConfiguration {
         this.connectionFactory = connectionFactory;
     }
 
-//    configura o rabbit admin e listener
+    //    configura o rabbit admin e listener
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
@@ -53,7 +63,7 @@ public class RabbitMQConfiguration {
         };
     }
 
-//    congfigura o FanoutExchange
+    //    congfigura o FanoutExchange
     @Bean
     public FanoutExchange createFanoutExchangePropostaPendente() {
         return ExchangeBuilder.fanoutExchange(PROPOSTA_PENDENTE_EX).build();
@@ -64,7 +74,17 @@ public class RabbitMQConfiguration {
         return ExchangeBuilder.fanoutExchange(PROPOSTA_CONCLUIDA_EX).build();
     }
 
-//    Configura os Bindings
+    @Bean
+    public FanoutExchange createFanoutExchangePropostaPendenteDLQ() {
+        return ExchangeBuilder.fanoutExchange(PROPOSTA_PENDENTE_DLQ_ex).build();
+    }
+
+    @Bean
+    public FanoutExchange createFanoutExchangePropostaConcluidaDLQ() {
+        return ExchangeBuilder.fanoutExchange(PROPOSTA_CONCLUIDA_DLQ_ex).build();
+    }
+
+    //    Configura os Bindings
     @Bean
     public Binding createBindingPropostaPendenteMSAnaliseCredito() {
         return BindingBuilder.bind(createQueueOrderPendingMSanalyse())
@@ -89,34 +109,71 @@ public class RabbitMQConfiguration {
                 .to(createFanoutExchangePropostaConcluida());
     }
 
-//    Cria as flilas
+    @Bean
+    public Binding createBindingPropostaPendenteDLQ() {
+        return BindingBuilder.bind(createQueueOrderPendenteDlq())
+                .to(createFanoutExchangePropostaPendenteDLQ());
+    }
+
+    @Bean
+    public Binding createBindingPropostaConcluidaDLQ() {
+        return BindingBuilder.bind(createQueueOrderCompletedDlq())
+                .to(createFanoutExchangePropostaConcluidaDLQ());
+    }
+
+    //    Cria as flilas
     @Bean
     public Queue createQueueOrderPendingMSanalyse() {
-        return QueueBuilder.durable(PROPOSTA_PENDENTE_ANALISE_CREDITO).build();
+        return QueueBuilder
+                .durable(PROPOSTA_PENDENTE_ANALISE_CREDITO)
+                .deadLetterExchange(PROPOSTA_PENDENTE_DLQ_ex)
+                .build();
     }
 
     @Bean
     public Queue createQueueOrderPendingMSnotification() {
-        return QueueBuilder.durable(PROPOSTA_PENDENTE_NOTIFICACAO).build();
+        return QueueBuilder
+                .durable(PROPOSTA_PENDENTE_NOTIFICACAO)
+                .build();
     }
 
     @Bean
     public Queue createQueueOrderCompletedMSproposta() {
-        return QueueBuilder.durable(PROPOSTA_CONCLUIDA_MS_PROPOSTA).build();
+        return QueueBuilder
+                .durable(PROPOSTA_CONCLUIDA_MS_PROPOSTA)
+                .deadLetterExchange(PROPOSTA_CONCLUIDA_DLQ_ex)
+                .build();
     }
 
     @Bean
     public Queue createQueueOrderCompletedMSnotification() {
-        return QueueBuilder.durable(PROPOSTA_CONCLUIDA_MS_NOTIFICACAO).build();
+        return QueueBuilder
+                .durable(PROPOSTA_CONCLUIDA_MS_NOTIFICACAO)
+                .deadLetterExchange(PROPOSTA_CONCLUIDA_DLQ_ex)
+                .build();
     }
 
-//    configura o message converter
+    @Bean
+    public Queue createQueueOrderPendenteDlq() {
+        return QueueBuilder
+                .durable(PROPOSTA_PENDENTE_DLQ)
+                .build();
+    }
+
+    @Bean
+    Queue createQueueOrderCompletedDlq() {
+        return QueueBuilder.
+                durable(PROPOSTA_CONCLUIDA_MS_NOTIFICACAO + ".dlq")
+                .build();
+    }
+
+    //    configura o message converter
     @Bean
     public MessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
-//    configura o RabbitTemplate
+    //    configura o RabbitTemplate
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
