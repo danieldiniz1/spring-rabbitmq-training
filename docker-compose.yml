@@ -11,6 +11,11 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+    # command: >
+    #    sh -c "docker-entrypoint.sh postgres &&
+    #    sleep 5 &&
+    #    psql -U postgres -d app-proposta -c 'CREATE SCHEMA IF NOT EXISTS apiproposta;' &&
+    #    psql -U postgres -d app-proposta -c 'ALTER ROLE postgres SET search_path TO apiproposta, public;'"
 
   rabbitmq:
     image: rabbitmq:management
@@ -21,7 +26,7 @@ services:
 
   backend-proposta-app:
     build:
-      context: /app-proposta/.
+      context: ./app-proposta/.
       dockerfile: Dockerfile
     depends_on:
       - db
@@ -32,6 +37,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/app-proposta?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      DEFAULT_SCHEMA: apiproposta
       SPRING_RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
@@ -41,30 +47,36 @@ services:
       propostapendentdlq_exchange: proposta-pendente-dlq.ex
       propostaconcluida_exchange: proposta-concluida.ex
       propostaconcluidadlq_exchange: proposta-concluida-dlq.ex
+    command:
+      sh sleep 10
+
 
   backend-notificacao-app:
     build:
-      context: .
+      context: ./notificacao/.
       dockerfile: Dockerfile
     depends_on:
       - db
       - rabbitmq
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
-#      RABBITMQ_HOST: localhost
-#      RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
       RABBITMQ_LISTENER_SIMPLE_RETRY_ENABLED: true
       RABBITMQ_LISTENER_SIMPLE_RETRY_MAX_ATTEMPTS: 3
+      propostapendent_exchange: proposta-pendente.ex
+      propostaconcluida_exchange: proposta-concluida.ex
+      queue_proposta_pendente: proposta-pendente.ms-notificacao
+      queue_proposta_concluida: proposta-concluida.ms-notificacao
+
+
 
   backend-analise-credito-app:
     build:
-      context: .
+      context: ./app-analisecredito/.
       dockerfile: Dockerfile
     depends_on:
       - rabbitmq
-
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
 #      RABBITMQ_PORT: 5672
@@ -72,6 +84,11 @@ services:
       RABBITMQ_PASSWORD: guest
       RABBITMQ_LISTENER_SIMPLE_RETRY_ENABLED: true
       RABBITMQ_LISTENER_SIMPLE_RETRY_MAX_ATTEMPTS: 3
+      propostapendent_exchange: proposta-pendente.ex
+      propostaconcluida_exchange: proposta-concluida.ex
+      queue_proposta_pendente: proposta-pendente.ms-analise-credito
+      queue_proposta_concluida: proposta-concluida.ms-notificacao
+
 
 #  frontend:
 #    image: matheuspieropan/proposta-web

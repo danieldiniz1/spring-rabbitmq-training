@@ -16,6 +16,7 @@ public interface PropostaRepository extends JpaRepository<PropostaModel, Long> {
 
     @Transactional
     @Modifying
+//    @Query(value = "UPDATE tb_proposta SET aprovada = :aprovada, observacao = :observacao WHERE id = :id", nativeQuery = true)
     @Query(value = "UPDATE apiproposta.tb_proposta SET aprovada = :aprovada, observacao = :observacao WHERE id = :id", nativeQuery = true)
     void updateProposta(Long id, Boolean aprovada, String observacao);
 }
