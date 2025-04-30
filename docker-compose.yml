@@ -11,11 +11,12 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+      - ./scripts:/docker-entrypoint-initdb.d
     # command: >
     #    sh -c "docker-entrypoint.sh postgres &&
     #    sleep 5 &&
-    #    psql -U postgres -d app-proposta -c 'CREATE SCHEMA IF NOT EXISTS apiproposta;' &&
-    #    psql -U postgres -d app-proposta -c 'ALTER ROLE postgres SET search_path TO apiproposta, public;'"
+    #    psql -U postgres -p -d app-proposta -c 'CREATE SCHEMA IF NOT EXISTS apiproposta;' &&
+    #    psql -U postgres -p -d app-proposta -c 'ALTER ROLE postgres SET search_path TO apiproposta, public;'"
 
   rabbitmq:
     image: rabbitmq:management
@@ -34,6 +35,7 @@ services:
     ports:
       - "8080:8080"
     environment:
+      ACTIVE_PROFILE: dev
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/app-proposta?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
@@ -59,6 +61,7 @@ services:
       - db
       - rabbitmq
     environment:
+      ACTIVE_PROFILE: dev
       SPRING_RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
@@ -78,8 +81,9 @@ services:
     depends_on:
       - rabbitmq
     environment:
+      ACTIVE_PROFILE: dev
       SPRING_RABBITMQ_HOST: rabbitmq
-#      RABBITMQ_PORT: 5672
+#      RABBITMQ_PORT: 5672ACTIVE_PROFILE: dev
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
       RABBITMQ_LISTENER_SIMPLE_RETRY_ENABLED: true

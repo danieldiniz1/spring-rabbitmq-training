@@ -20,6 +20,7 @@ public class PropostaModel {
     @Column(name = "valor_solicitado")
     private BigDecimal valorSolicitado;
 
+    @Column(name = "prazo_pagamento")
     private int prazoPagamento;
 
     private Boolean aprovada;
