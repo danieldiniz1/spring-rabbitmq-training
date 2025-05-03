@@ -11,6 +11,11 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 
 
@@ -19,9 +24,14 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
-#    environment:
-#      RABBITMQ_DEFAULT_USER: admin
-#      RABBITMQ_DEFAULT_PASS: admin
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  #    environment:
+  #      RABBITMQ_DEFAULT_USER: admin
+  #      RABBITMQ_DEFAULT_PASS: admin
 
 
   backend-proposta-app:
@@ -29,8 +39,10 @@ services:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      - db
-      - rabbitmq
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
@@ -53,7 +65,8 @@ services:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: guest
@@ -70,7 +83,8 @@ services:
       context: ../app-analisecredito/.
       dockerfile: Dockerfile
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: guest

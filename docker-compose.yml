@@ -11,13 +11,23 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./scripts:/docker-entrypoint-initdb.d
+      # - ./scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:management
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 
   backend-proposta-app:
@@ -25,8 +35,10 @@ services:
       context: ./app-proposta/.
       dockerfile: Dockerfile
     depends_on:
-      - db
-      - rabbitmq
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
@@ -53,8 +65,8 @@ services:
       context: ./notificacao/.
       dockerfile: Dockerfile
     depends_on:
-      - db
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     environment:
       ACTIVE_PROFILE: dev
       SPRING_RABBITMQ_HOST: rabbitmq
@@ -74,7 +86,8 @@ services:
       context: ./app-analisecredito/.
       dockerfile: Dockerfile
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     environment:
       ACTIVE_PROFILE: dev
       SPRING_RABBITMQ_HOST: rabbitmq
