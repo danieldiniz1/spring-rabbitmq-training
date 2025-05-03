@@ -12,11 +12,6 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
       - ./scripts:/docker-entrypoint-initdb.d
-    # command: >
-    #    sh -c "docker-entrypoint.sh postgres &&
-    #    sleep 5 &&
-    #    psql -U postgres -p -d app-proposta -c 'CREATE SCHEMA IF NOT EXISTS apiproposta;' &&
-    #    psql -U postgres -p -d app-proposta -c 'ALTER ROLE postgres SET search_path TO apiproposta, public;'"
 
   rabbitmq:
     image: rabbitmq:management
@@ -49,8 +44,8 @@ services:
       propostapendentdlq_exchange: proposta-pendente-dlq.ex
       propostaconcluida_exchange: proposta-concluida.ex
       propostaconcluidadlq_exchange: proposta-concluida-dlq.ex
-    command:
-      sh sleep 10
+    # command:
+    #   sh sleep 10
 
 
   backend-notificacao-app:
@@ -83,7 +78,7 @@ services:
     environment:
       ACTIVE_PROFILE: dev
       SPRING_RABBITMQ_HOST: rabbitmq
-#      RABBITMQ_PORT: 5672ACTIVE_PROFILE: dev
+#      RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
       RABBITMQ_LISTENER_SIMPLE_RETRY_ENABLED: true
