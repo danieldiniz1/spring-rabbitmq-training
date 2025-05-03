@@ -11,18 +11,23 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./scripts:/docker-entrypoint-initdb.d
-    # command: >
-    #    sh -c "docker-entrypoint.sh postgres &&
-    #    sleep 5 &&
-    #    psql -U postgres -p -d app-proposta -c 'CREATE SCHEMA IF NOT EXISTS apiproposta;' &&
-    #    psql -U postgres -p -d app-proposta -c 'ALTER ROLE postgres SET search_path TO apiproposta, public;'"
+      # - ./scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:management
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 
   backend-proposta-app:
@@ -30,10 +35,19 @@ services:
       context: ./app-proposta/.
       dockerfile: Dockerfile
     depends_on:
-      - db
-      - rabbitmq
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     ports:
       - "8080:8080"
+    # healthcheck:
+    #   #      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+    #   test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+    #   # test: [ "CMD-SHELL", "grep -q 'Started' /app/volume/file.log || exit 1" ]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 5
     environment:
       ACTIVE_PROFILE: dev
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/app-proposta?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
@@ -49,8 +63,8 @@ services:
       propostapendentdlq_exchange: proposta-pendente-dlq.ex
       propostaconcluida_exchange: proposta-concluida.ex
       propostaconcluidadlq_exchange: proposta-concluida-dlq.ex
-    command:
-      sh sleep 10
+    # command:
+    #   sh sleep 10
 
 
   backend-notificacao-app:
@@ -58,8 +72,10 @@ services:
       context: ./notificacao/.
       dockerfile: Dockerfile
     depends_on:
-      - db
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+      # backend-proposta-app:
+      #   condition: service_healthy
     environment:
       ACTIVE_PROFILE: dev
       SPRING_RABBITMQ_HOST: rabbitmq
@@ -79,11 +95,14 @@ services:
       context: ./app-analisecredito/.
       dockerfile: Dockerfile
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+      # backend-proposta-app:
+      #   condition: service_healthy
     environment:
       ACTIVE_PROFILE: dev
       SPRING_RABBITMQ_HOST: rabbitmq
-#      RABBITMQ_PORT: 5672ACTIVE_PROFILE: dev
+#      RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
       RABBITMQ_LISTENER_SIMPLE_RETRY_ENABLED: true

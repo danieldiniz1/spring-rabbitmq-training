@@ -7,10 +7,10 @@ WORKDIR /app
 
 # Copy the build files from the host to the container
 COPY build/libs/app-analisecredito-*.jar app.jar
-COPY wait-for-it.sh wait-for-it.sh
+#COPY wait-for-it.sh wait-for-it.sh
 
 # Add permissions to the wait-for-it script executable for ping other containers
-RUN chmod +x wait-for-it.sh
+RUN #chmod +x wait-for-it.sh
 
 # Create and set the volume directory
 VOLUME /app/volume
@@ -19,5 +19,5 @@ VOLUME /app/volume
 #EXPOSE 8080
 
 # Run the application
-#ENTRYPOINT ["java", "-jar", "app.jar"]
-ENTRYPOINT ["./wait-for-it.sh","db:5432","--","./wait-for-it.sh","rabbit-mq:5672","--","java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
+#ENTRYPOINT ["./wait-for-it.sh","db:5432","--","./wait-for-it.sh","rabbit-mq:5672","--","java", "-jar", "app.jar"]
