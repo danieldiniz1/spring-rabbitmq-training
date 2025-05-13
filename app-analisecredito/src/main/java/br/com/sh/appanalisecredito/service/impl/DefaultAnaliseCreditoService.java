@@ -42,7 +42,7 @@ public class DefaultAnaliseCreditoService implements AnaliseCreditoService {
             LOGGER.info("Pontuacao do proposta: {}. proposta id: {}", pontuacao, proposta.getId());
             verificaAprovacao(pontuacao, proposta);
 
-        } catch (RuntimeException e) {
+        } catch (RuntimeException e) { //TODO utulizar excecao mais especifica
             LOGGER.error("Erro ao calcular pontuacao proposta id: {}. Erro: {}", proposta.getId(), e.getMessage());
             reprovarProposta(proposta, 0, e.getMessage());
         }
